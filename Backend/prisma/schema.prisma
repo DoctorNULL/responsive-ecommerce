@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User{
+  id String @id @default(uuid())
+  fullname String
+  username String
+  password String
+  email String
+  phone String?
+  is_verified Boolean @default(false)
+  is_admin Boolean @default(false)
+  code String
+
+  reviews Review[]
+  carts Cart[]
+}
+
+model Product{
+  id String @id @default(cuid())
+  name String
+  price Decimal
+  creation_date DateTime
+  description String
+  image String
+
+  categories Product_has_Category[]
+  reviews Review[]
+  carts Cart_has_Product[]
+}
+
+model Category{
+  id Int @id @default(autoincrement())
+  name String @unique
+
+  products Product_has_Category[]
+}
+
+model Product_has_Category{
+  product String
+  category Int
+
+  categoryObject Category @relation(fields: [category], references: [id])
+  productObject Product @relation(fields: [product], references: [id])
+
+  @@id([product, category])
+}
+
+model Review{
+  id String @default(cuid())
+  user String
+  product String
+
+  content String?
+  rating Int
+
+  userObj User @relation(fields: [user], references: [id])
+  productObj Product @relation(fields: [product], references: [id])
+
+
+  @@id([id, user, product])
+}
+
+model Cart{
+  id String @default(cuid())
+  user String
+
+  creation_date DateTime
+  is_resolved Boolean
+
+  userObj User @relation(fields: [user], references: [id])
+  content Cart_has_Product[]
+  @@id([id, user])
+}
+
+model Cart_has_Product{
+  cart String
+  user String
+  product String
+  quntity Int
+
+  cartObj Cart @relation(fields: [cart, user], references: [id, user])
+  productObj Product @relation(fields: [product], references: [id])
+
+  @@id([cart, user, product])
+}
